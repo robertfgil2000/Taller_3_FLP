@@ -1,23 +1,16 @@
-
 #lang eopl
 (define scanner-spec-simple-interpreter
 '((white-sp (whitespace) skip)
   (comment  ("%" (arbno (not #\newline))) skip)
-  (identifier ("@" (arbno(or letter digit))) symbol)
-  (text  (letter (arbno (or letter digit "?"))) symbol)
-  (number  (digit (arbno (or digit "." )) )number)
-  (number ("-" digit (arbno (or digit "." )) )number)
-  ))
+  (identifier ("@" letter digit) symbol)
+  (number (digit (arbno digit)) number)
+  (number ("-" digit (arbno digit)) number)))
 
-;especificacion sintactica (granatica)
 (define grammar-simple-interpreter
   '((program (expression) a-program)
     (expression (number) lit-exp)
-    (expression (text) lit-text)
     (expression (identifier) var-exp)
-     (expression
-     (primitive "(" (separated-list expression ",")")")
-     primapp-exp)
+    (expression ( "("expression primitive (arbno expression) ")") primapp-exp)
 
    
     ; características adicionales
@@ -80,44 +73,22 @@
      '(4 2 5)
      (empty-env))))
 
-;(define eval-expression
- ; (lambda (exp env)
-  ;  (cases expression exp
-   ;   (lit-exp (datum) datum)
-    ;  (var-exp (id) (apply-env env id))
-     ; (primapp-exp (prim rands)
-      ;             (let ((args (eval-rands rands env)))
-      ;               (apply-primitive prim args)))
-      ;(if-exp (test-exp true-exp false-exp)
-       ;       (if (true-value? (eval-expression test-exp env))
-        ;          (eval-expression true-exp env)
-         ;         (eval-expression false-exp env)))
-      ;(let-exp (ids rands body)
-       ;        (let ((args (eval-rands rands env)))
-        ;         (eval-expression body
-         ;                         (extend-env ids args env)))))))
-
-
-
 (define eval-expression
   (lambda (exp env)
     (cases expression exp
       (lit-exp (datum) datum)
-      (lit-text (texto) texto)
       (var-exp (id) (apply-env env id))
-      (primapp-exp(prim rands)
-                  (let ((args (eval-rands rands env)))
-                        (apply-primitive prim args)))
-         (if-exp (test-exp true-exp false-exp)
+      (primapp-exp (prim rands)
+                   (let ((args (eval-rands rands env)))
+                     (apply-primitive prim args)))
+      (if-exp (test-exp true-exp false-exp)
               (if (true-value? (eval-expression test-exp env))
                   (eval-expression true-exp env)
                   (eval-expression false-exp env)))
       (let-exp (ids rands body)
                (let ((args (eval-rands rands env)))
                  (eval-expression body
-                                  (extend-env ids args env))))
-      )
-    ))
+                                  (extend-env ids args env)))))))
 ; funciones auxiliares para aplicar eval-expression a cada elemento de una 
 ; lista de operandos (expresiones)
 (define eval-rands
