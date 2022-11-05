@@ -21,7 +21,7 @@
 
    
     ; características adicionales
-    (expression ("if" expression "then" expression "else" expression)
+    (expression ("Si" expression "entonces" expression "sino" expression)
                 if-exp)
     (expression ("let" (arbno identifier "=" expression) "in" expression)
                 let-exp)
@@ -29,6 +29,7 @@
     (primitive ("+") add-prim)
     (primitive ("~") substract-prim)
     (primitive ("*") mult-prim)
+    (primitive ("/") div-prim)
     (primitive ("add1") incr-prim)
     (primitive ("sub1") decr-prim)))
 
@@ -76,27 +77,9 @@
 (define init-env
   (lambda ()
     (extend-env
-     '(x y z)
-     '(4 2 5)
+     '(@a @b @c @d @e )
+     '(1.5 2 3 "hola" "FLP")
      (empty-env))))
-
-;(define eval-expression
- ; (lambda (exp env)
-  ;  (cases expression exp
-   ;   (lit-exp (datum) datum)
-    ;  (var-exp (id) (apply-env env id))
-     ; (primapp-exp (prim rands)
-      ;             (let ((args (eval-rands rands env)))
-      ;               (apply-primitive prim args)))
-      ;(if-exp (test-exp true-exp false-exp)
-       ;       (if (true-value? (eval-expression test-exp env))
-        ;          (eval-expression true-exp env)
-         ;         (eval-expression false-exp env)))
-      ;(let-exp (ids rands body)
-       ;        (let ((args (eval-rands rands env)))
-        ;         (eval-expression body
-         ;                         (extend-env ids args env)))))))
-
 
 
 (define eval-expression
@@ -118,6 +101,13 @@
                                   (extend-env ids args env))))
       )
     ))
+
+
+;(define find-variable
+;(lambda(env id)
+ ;(apply-env env id)
+;))
+
 ; funciones auxiliares para aplicar eval-expression a cada elemento de una 
 ; lista de operandos (expresiones)
 (define eval-rands
@@ -135,6 +125,7 @@
       (add-prim () (+ (car args) (cadr args)))
       (substract-prim () (- (car args) (cadr args)))
       (mult-prim () (* (car args) (cadr args)))
+      (div-prim () (/ (car args) (cadr args)))
       (incr-prim () (+ (car args) 1))
       (decr-prim () (- (car args) 1)))))
 
@@ -200,3 +191,4 @@
               (if (number? list-index-r)
                 (+ list-index-r 1)
                 #f))))))
+
