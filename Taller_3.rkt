@@ -15,23 +15,27 @@
     (expression (number) lit-exp)
     (expression (text) lit-text)
     (expression (identifier) var-exp)
-     (expression
-     (primitive "(" (separated-list expression ",")")")
-     primapp-exp)
+ (expression ("(" expression primitiva expression ")" ) primapp-exp)
+    (expression (primitive"(" expression ")") primapp-un-exp)
+    (expression ("Si" expression "entonces" expression "sino" expression "finSI") condicional-exp)
+    (expression
+     ("declarar" "(" (separated-list identifier "=" expression ";") ")"
+                 "{" expression "}") variableLocal-exp)
+    (expression
+     ("procedimiento" "(" (separated-list identifier ",") ")" "haga" expression "finProc") procedimiento-ex)
+    (expression ("evaluar" expression  "(" (separated-list expression ",") ")" "finEval") eval-exp)
 
-   
-    ; características adicionales
-    (expression ("Si" expression "entonces" expression "sino" expression)
-                if-exp)
-    (expression ("let" (arbno identifier "=" expression) "in" expression)
-                let-exp)
-    ;;;;;;
-    (primitive ("+") add-prim)
-    (primitive ("~") substract-prim)
-    (primitive ("*") mult-prim)
-    (primitive ("/") div-prim)
-    (primitive ("add1") incr-prim)
-    (primitive ("sub1") decr-prim)))
+    (expression ("recursivo" "(" (separated-list identifier "(" (separated-list identifier ",") ")" "=" expression ";") ")"  "{" expression "}")
+               recur-exp)
+    (primitive ("+") primitiva-suma)
+    (primitive ("~") primitiva-resta)
+    (primitive ("/" ) primitiva-div)
+    (primitive ("*") primitiva-multi)
+    (primitive("concat") primitiva-concat)
+    (primitive ("longitud") primitiva-longitud)
+    (primitive ("add1" ) primitiva-add1)
+    (primitive ("sub1") primitiva-sub1)
+    ))
 
 ;Construidos automáticamente:
 
