@@ -1,4 +1,3 @@
-
 #lang eopl
 (define scanner-spec-simple-interpreter
 '((white-sp (whitespace) skip)
@@ -9,35 +8,81 @@
   (number ("-" digit (arbno (or digit "." )) )number)
   ))
 
-;especificacion sintactica (granatica)
+
+;especificacion sintactica (gramatica)
+#|
+- <programa> := <expresion>
+                un-programa(exp)
+- <expresion := <numero>
+                numero-lit(num)
+
+             := "\"" <texto> "\""
+                texto-lit(txt)
+
+             := <identificador>
+                var-exp(id)
+
+             := (expresion <primitiva-binaria> expresion)
+                primapp-bin-exp (exp1 primBin exp2)
+
+              := <primitiva-unaria> (expresion)
+                 primapp-un-exp (primUn exp)
+
+             := Si <expresion> entonces <expresion>  sino <expresion> finSI
+                condicional-exp (test-exp true-exp false-exp)
+            
+             := declarar (<identificador> = <expresion> (;)) { <expresion> }
+                variableLocal-exp (ids exps cuerpo)
+
+             := procedimiento (<identificador>*',') haga <expresion> finProc
+                procedimiento-ex (ids cuerpo)
+
+             := "evaluar" expresion (expresion ",")*  finEval
+                app-exp (id args)
+
+<primitiva-binaria> :=  + (primitiva-suma)
+                    :=  ~ (primitiva-resta)
+                    :=  / (primitiva-div)
+                    :=  * (primitiva-multi)
+                    :=  concat (primitiva-concat)
+
+<primitiva-unaria> :=  longitud (primitiva-longitud)
+                   :=  add1 (primitiva-add1)
+                   :=  sub1 (primitiva-sub1)
+
+|#
 (define grammar-simple-interpreter
-  '((program (expression) a-program)
+  '(
+    (program (expression) a-program)
     (expression (number) lit-exp)
-    (expression (text) lit-text)
+    (expression ("\"" text "\"") lit-text)
     (expression (identifier) var-exp)
- (expression ("(" expression primitiva expression ")" ) primapp-exp)
-    (expression (primitive"(" expression ")") primapp-un-exp)
-    (expression ("Si" expression "entonces" expression "sino" expression "finSI") condicional-exp)
+    (expression ("(" expression primitiva-binaria expression ")" ) primapp-bin-exp)
+    (expression (primitiva-unaria "(" expression ")") primapp-un-exp)
+    (expression ("Si" expression "entonces" expression "sino" expression "finSI") if-exp)
     (expression
      ("declarar" "(" (separated-list identifier "=" expression ";") ")"
-                 "{" expression "}") variableLocal-exp)
+                 "{" expression "}") let-exp)
     (expression
      ("procedimiento" "(" (separated-list identifier ",") ")" "haga" expression "finProc") procedimiento-ex)
     (expression ("evaluar" expression  "(" (separated-list expression ",") ")" "finEval") eval-exp)
 
     (expression ("recursivo" "(" (separated-list identifier "(" (separated-list identifier ",") ")" "=" expression ";") ")"  "{" expression "}")
                recur-exp)
-    (primitive ("+") primitiva-suma)
-    (primitive ("~") primitiva-resta)
-    (primitive ("/" ) primitiva-div)
-    (primitive ("*") primitiva-multi)
-    (primitive("concat") primitiva-concat)
-    (primitive ("longitud") primitiva-longitud)
-    (primitive ("add1" ) primitiva-add1)
-    (primitive ("sub1") primitiva-sub1)
-    ))
+    (primitiva-binaria ("+") primitiva-suma)
+    (primitiva-binaria ("~") primitiva-resta)
+    (primitiva-binaria ("/" ) primitiva-div)
+    (primitiva-binaria ("*") primitiva-multi)
+    (primitiva-binaria ("concat") primitiva-concat)
+    (primitiva-unaria ("longitud") primitiva-longitud)
+    (primitiva-unaria ("add1" ) primitiva-add1)
+    (primitiva-unaria ("sub1") primitiva-sub1)
+    )
+  )
+
 
 ;Construidos automáticamente:
+;;datatypes
 
 (sllgen:make-define-datatypes scanner-spec-simple-interpreter grammar-simple-interpreter)
 
@@ -56,18 +101,15 @@
 (define just-scan
   (sllgen:make-string-scanner scanner-spec-simple-interpreter grammar-simple-interpreter))
 
-;El Interpretador (FrontEnd + Evaluación + señal para lectura )
-
-(define interpretador
-  (sllgen:make-rep-loop  "--> "
-    (lambda (pgm) (eval-program  pgm)) 
-    (sllgen:make-stream-parser 
-      scanner-spec-simple-interpreter
-      grammar-simple-interpreter)))
-
+;; Ambiente inicial.
+(define init-env
+  (lambda ()
+    (extend-env
+     '(@a @b @c @d @e )
+     '(1 2 3 "hola" "FLP")
+     (empty-env))))
 ;*******************************************************************************************
 ;El Interprete
-
 ;eval-program: <programa> -> numero
 ; función que evalúa un programa teniendo en cuenta un ambiente dado (se inicializa dentro del programa)
 
@@ -77,14 +119,14 @@
       (a-program (body)
                  (eval-expression body (init-env))))))
 
+;El Interpretador (FrontEnd + Evaluación + señal para lectura )
 
-(define init-env
-  (lambda ()
-    (extend-env
-     '(@a @b @c @d @e )
-     '(1.5 2 3 "hola" "FLP")
-     (empty-env))))
-
+(define interpretador
+  (sllgen:make-rep-loop  "--> "
+    (lambda (pgm) (eval-program  pgm)) 
+    (sllgen:make-stream-parser 
+      scanner-spec-simple-interpreter
+      grammar-simple-interpreter)))
 
 (define eval-expression
   (lambda (exp env)
@@ -92,10 +134,9 @@
       (lit-exp (datum) datum)
       (lit-text (texto) texto)
       (var-exp (id) (apply-env env id))
-      (primapp-exp(prim rands)
-                  (let ((args (eval-rands rands env)))
-                        (apply-primitive prim args)))
-         (if-exp (test-exp true-exp false-exp)
+      (primapp-bin-exp (exp1 primBin exp2) (apply-primitive primBin (eval-rands (list exp1 exp2) env)))
+      (primapp-un-exp (primUn exp1) (apply-primitive primUn (eval-rands (list exp1) env)))
+      (if-exp (test-exp true-exp false-exp)
               (if (true-value? (eval-expression test-exp env))
                   (eval-expression true-exp env)
                   (eval-expression false-exp env)))
@@ -103,9 +144,24 @@
                (let ((args (eval-rands rands env)))
                  (eval-expression body
                                   (extend-env ids args env))))
+      (procedimiento-ex (ids cuerpo) (cerradura ids cuerpo env))
+      (eval-exp (id args) (apply-procedure (eval-expression id env) (eval-rands args env)))
+      (recur-exp (procs idss bodies principalBody)
+                 (eval-expression principalBody
+                                 (extend-env-recursively procs idss bodies env)))
+       
       )
     ))
 
+`;*********************
+; Representacion de la cerradura para un procedimiento valido
+;
+; <cerradura>  := <(identificador)*> <expresion> <environment>
+;
+; Una cerradura guarda los componentes asociados a un procedimiento valido:
+; Una lista de identificadores, una expresion y un ambiente 
+;
+`
 
 ;(define find-variable
 ;(lambda(env id)
@@ -122,16 +178,25 @@
   (lambda (rand env)
     (eval-expression rand env)))
 
+
 ;apply-primitive: <primitiva> <list-of-expression> -> numero
 (define apply-primitive
   (lambda (prim args)
-    (cases primitive prim
-      (add-prim () (+ (car args) (cadr args)))
-      (substract-prim () (- (car args) (cadr args)))
-      (mult-prim () (* (car args) (cadr args)))
-      (div-prim () (/ (car args) (cadr args)))
-      (incr-prim () (+ (car args) 1))
-      (decr-prim () (- (car args) 1)))))
+    (if (primitiva-binaria? prim)
+        (cases primitiva-binaria prim
+          (primitiva-suma () (+ (car args) (cadr args)))
+          (primitiva-resta () (- (car args) (cadr args)))
+          (primitiva-multi () (* (car args) (cadr args)))
+          (primitiva-div () (/ (car args) (cadr args)))
+          (primitiva-concat () (string-append (car args) (cadr args)))
+          )
+        (cases primitiva-unaria prim
+          (primitiva-add1 () (+ (car args) 1))
+          (primitiva-sub1 () (- (car args) 1))
+          (primitiva-longitud (string-length (car args)) )
+          )
+        )
+    ))
 
 ;true-value?: determina si un valor dado corresponde a un valor booleano falso o verdadero
 (define true-value?
