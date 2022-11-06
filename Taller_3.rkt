@@ -57,18 +57,18 @@
     (expression (number) lit-exp)
     (expression ("\"" text "\"") lit-text)
     (expression (identifier) var-exp)
-    (expression ("(" expression primitiva-binaria expression ")" ) primapp-bin-exp)
+    (expression ( "(" expression primitiva-binaria expression ")") primapp-bin-exp)
     (expression (primitiva-unaria "(" expression ")") primapp-un-exp)
     (expression ("Si" expression "entonces" expression "sino" expression "finSI") if-exp)
     (expression
      ("declarar" "(" (separated-list identifier "=" expression ";") ")"
                  "{" expression "}") let-exp)
-    (expression
-     ("procedimiento" "(" (separated-list identifier ",") ")" "haga" expression "finProc") procedimiento-ex)
-    (expression ("evaluar" expression  "(" (separated-list expression ",") ")" "finEval") eval-exp)
+    ;;(expression
+     ;;("procedimiento" "(" (separated-list identifier ",") ")" "haga" expression "finProc") procedimiento-ex)
+    ;;(expression ("evaluar" expression  "(" (separated-list expression ",") ")" "finEval") eval-exp)
 
-    (expression ("recursivo" "(" (separated-list identifier "(" (separated-list identifier ",") ")" "=" expression ";") ")"  "{" expression "}")
-               recur-exp)
+   ;; (expression ("recursivo" "(" (separated-list identifier "(" (separated-list identifier ",") ")" "=" expression ";") ")"  "{" expression "}")
+   ;;            recur-exp)
     (primitiva-binaria ("+") primitiva-suma)
     (primitiva-binaria ("~") primitiva-resta)
     (primitiva-binaria ("/" ) primitiva-div)
@@ -134,21 +134,29 @@
       (lit-exp (datum) datum)
       (lit-text (texto) texto)
       (var-exp (id) (apply-env env id))
-      (primapp-bin-exp (exp1 primBin exp2) (apply-primitive primBin (eval-rands (list exp1 exp2) env)))
-      (primapp-un-exp (primUn exp1) (apply-primitive primUn (eval-rands (list exp1) env)))
+      (primapp-bin-exp (rand1 prim rand2)
+                  (let ((arg1 (eval-rand rand1 env)))
+                    (let ((arg2 (eval-rand rand2 env)))
+                      (apply-primitive prim arg1 arg2)
+                      )
+                    ))
+      (primapp-un-exp (primUn rand)
+                      (let ((arg (eval-rand rand env)))
+                      (apply-primitive-un primUn arg)))
       (if-exp (test-exp true-exp false-exp)
               (if (true-value? (eval-expression test-exp env))
                   (eval-expression true-exp env)
                   (eval-expression false-exp env)))
-      (let-exp (ids rands body)
-               (let ((args (eval-rands rands env)))
+     (let-exp (ids rands body)
+               (let ((args (eval-rand rands env)))
                  (eval-expression body
                                   (extend-env ids args env))))
-      (procedimiento-ex (ids cuerpo) (cerradura ids cuerpo env))
-      (eval-exp (id args) (apply-procedure (eval-expression id env) (eval-rands args env)))
-      (recur-exp (procs idss bodies principalBody)
-                 (eval-expression principalBody
-                                 (extend-env-recursively procs idss bodies env)))
+      
+     ;; (procedimiento-ex (ids cuerpo) (cerradura ids cuerpo env))
+      ;;(eval-exp (id args) (apply-procedure (eval-expression id env) (eval-rand args env)))
+     ;; (recur-exp (procs idss bodies principalBody)
+      ;;           (eval-expression principalBody
+        ;;                         (extend-env-recursively procs idss bodies env)))
        
       )
     ))
@@ -181,22 +189,23 @@
 
 ;apply-primitive: <primitiva> <list-of-expression> -> numero
 (define apply-primitive
+  (lambda (prim arg1 arg2)
+    (cases primitiva-binaria prim
+      (primitiva-suma () (+ arg1 arg2 ))
+      (primitiva-resta () (- arg1 arg2 ))
+      (primitiva-multi () (* arg1 arg2 ) )
+      (primitiva-div () (/ arg1 arg2 ))
+      (primitiva-concat () (append-test arg1 arg2))
+      )))
+        
+(define apply-primitive-un
   (lambda (prim args)
-    (if (primitiva-binaria? prim)
-        (cases primitiva-binaria prim
-          (primitiva-suma () (+ (car args) (cadr args)))
-          (primitiva-resta () (- (car args) (cadr args)))
-          (primitiva-multi () (* (car args) (cadr args)))
-          (primitiva-div () (/ (car args) (cadr args)))
-          (primitiva-concat () (string-append (car args) (cadr args)))
-          )
-        (cases primitiva-unaria prim
-          (primitiva-add1 () (+ (car args) 1))
-          (primitiva-sub1 () (- (car args) 1))
-          (primitiva-longitud (string-length (car args)) )
+    (cases primitiva-unaria prim
+          (primitiva-add1 () (+  args 1))
+          (primitiva-sub1 () (- args 1))
+          (primitiva-longitud (string-length (list->string '(args)))))
           )
         )
-    ))
 
 ;true-value?: determina si un valor dado corresponde a un valor booleano falso o verdadero
 (define true-value?
@@ -261,3 +270,9 @@
                 (+ list-index-r 1)
                 #f))))))
 
+     (define (append-test lhs rhs)
+  (if (and (string? lhs) (string? rhs))
+      rhs
+      (list lhs rhs)))
+     
+(interpretador)
