@@ -317,7 +317,11 @@
   (if (and (string? lhs) (string? rhs))
       rhs
       (list lhs rhs)))
- (scan&parse " declarar (@x=1; @a=procedimiento (@x) haga recursivo ( @fact ) (@x) = Si @x entonces (@x * evaluar @fact(sub1(@x)) finEval) sino 1 finSI  { evaluar @fact(@x) finEval} finProc)   {evaluar @a(5) finEval}")
+ 
+ ;PUNTO a) RADIO CIRCULO:
+ (scan&parse "declarar (@radio=2.5;@areaCirculo=procedimiento (@x) haga ((@x*@x)*3.14) finProc) {  evaluar @areaCirculo (@radio) finEval  }")     
+;PUNTO b) Factorial de 5 y 10
+(scan&parse " declarar (@x=1; @a=procedimiento (@x) haga recursivo ( @fact ) (@x) = Si @x entonces (@x * evaluar @fact(sub1(@x)) finEval) sino 1 finSI  { evaluar @fact(@x) finEval} finProc)   {evaluar @a(5) finEval}")
 (scan&parse " declarar (@x=1; @a=procedimiento (@x) haga recursivo ( @fact ) (@x) = Si @x entonces (@x * evaluar @fact(sub1(@x)) finEval) sino 1 finSI  { evaluar @fact(@x) finEval} finProc)   {evaluar @a(10) finEval}")
 (interpretador)
 
