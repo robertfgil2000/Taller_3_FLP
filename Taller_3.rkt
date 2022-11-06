@@ -63,6 +63,7 @@
     (expression
      ("declarar" "(" (separated-list identifier "=" expression ";") ")"
                  "{" expression "}") let-exp)
+  
     
     (expression
      ("procedimiento" "(" (separated-list identifier ";") ")" "haga" expression "finProc") procedimiento-ex)
@@ -70,8 +71,9 @@
     
     (expression ("evaluar" expression  "(" (separated-list expression ",") ")" "finEval") eval-exp)
 
-   ;; (expression ("recursivo" "(" (separated-list identifier "(" (separated-list identifier ",") ")" "=" expression ";") ")"  "{" expression "}")
-   ;;            recur-exp)
+ (expression ("recursivo" "(" (arbno identifier ")" "(" (separated-list identifier ",") ")" "=" expression )  "{" expression "}")
+              recur-exp)
+
     (primitiva-binaria ("+") primitiva-suma)
     (primitiva-binaria ("~") primitiva-resta)
     (primitiva-binaria ("/" ) primitiva-div)
@@ -154,6 +156,8 @@
               (let ((args (eval-rands rands env)))
                  (eval-expression body
                                   (extend-env ids args env))))
+
+      
       
       (procedimiento-ex (ids cuerpo) (cerradura ids cuerpo env))
       (eval-exp (rator rands)
@@ -163,9 +167,9 @@
                      (apply-procedure proc args)
                      (eopl:error 'eval-expression
                                  "Attempt to apply non-procedure ~s" proc))))
-     ;; (recur-exp (procs idss bodies principalBody)
-      ;;           (eval-expression principalBody
-        ;;                         (extend-env-recursively procs idss bodies env)))
+      (recur-exp (procs idss bodies principalBody)
+                 (eval-expression principalBody
+                              (extend-env-recursively procs idss bodies env)))
        
       )
     ))
@@ -243,7 +247,11 @@
   (extended-env-record (syms (list-of symbol?))
                        (vals (list-of scheme-value?))
 
-                       (env environment?)))
+                       (env environment?))
+  (recursively-extended-env-record (proc-names (list-of symbol?))
+                                   (idss (list-of (list-of symbol?)))
+                                   (bodies (list-of expression?))
+                                   (env environment?)))
 
 (define scheme-value? (lambda (v) #t))
 
@@ -258,19 +266,31 @@
 ;función que crea un ambiente extendido
 (define extend-env
   (lambda (syms vals env)
-    (extended-env-record syms vals env))) 
+    (extended-env-record syms vals env)))
+
+(define extend-env-recursively
+  (lambda (proc-names idss bodies old-env)
+    (recursively-extended-env-record
+     proc-names idss bodies old-env)))
 
 ;función que busca un símbolo en un ambiente
 (define apply-env
   (lambda (env sym)
     (cases environment env
       (empty-env-record ()
-                        (eopl:error 'apply-env "No binding for ~s" sym))
-      (extended-env-record (syms vals env)
+                        (eopl:error 'empty-env "No binding for ~s" sym))
+      (extended-env-record (syms vals old-env)
                            (let ((pos (list-find-position sym syms)))
                              (if (number? pos)
                                  (list-ref vals pos)
-                                 (apply-env env sym)))))))
+                                 (apply-env old-env sym))))
+      (recursively-extended-env-record (proc-names idss bodies old-env)
+                                       (let ((pos (list-find-position sym proc-names)))
+                                         (if (number? pos)
+                                             (cerradura (list-ref idss pos)
+                                                      (list-ref bodies pos)
+                                                      env)
+                                             (apply-env old-env sym)))))))
 
 
 ;****************************************************************************************
@@ -297,5 +317,7 @@
   (if (and (string? lhs) (string? rhs))
       rhs
       (list lhs rhs)))
-     
+ (scan&parse " declarar (@x=1; @a=procedimiento (@x) haga recursivo ( @fact ) (@x) = Si @x entonces (@x * evaluar @fact(sub1(@x)) finEval) sino 1 finSI  { evaluar @fact(@x) finEval} finProc)   {evaluar @a(5) finEval}")
+(scan&parse " declarar (@x=1; @a=procedimiento (@x) haga recursivo ( @fact ) (@x) = Si @x entonces (@x * evaluar @fact(sub1(@x)) finEval) sino 1 finSI  { evaluar @fact(@x) finEval} finProc)   {evaluar @a(10) finEval}")
 (interpretador)
+
