@@ -63,9 +63,12 @@
     (expression
      ("declarar" "(" (separated-list identifier "=" expression ";") ")"
                  "{" expression "}") let-exp)
-    ;;(expression
-     ;;("procedimiento" "(" (separated-list identifier ",") ")" "haga" expression "finProc") procedimiento-ex)
-    ;;(expression ("evaluar" expression  "(" (separated-list expression ",") ")" "finEval") eval-exp)
+    
+    (expression
+     ("procedimiento" "(" (separated-list identifier ";") ")" "haga" expression "finProc") procedimiento-ex)
+
+    
+    (expression ("evaluar" expression  "(" (separated-list expression ",") ")" "finEval") eval-exp)
 
    ;; (expression ("recursivo" "(" (separated-list identifier "(" (separated-list identifier ",") ")" "=" expression ";") ")"  "{" expression "}")
    ;;            recur-exp)
@@ -148,12 +151,18 @@
                   (eval-expression true-exp env)
                   (eval-expression false-exp env)))
      (let-exp (ids rands body)
-               (let ((args (eval-rand rands env)))
+              (let ((args (eval-rands rands env)))
                  (eval-expression body
                                   (extend-env ids args env))))
       
-     ;; (procedimiento-ex (ids cuerpo) (cerradura ids cuerpo env))
-      ;;(eval-exp (id args) (apply-procedure (eval-expression id env) (eval-rand args env)))
+      (procedimiento-ex (ids cuerpo) (cerradura ids cuerpo env))
+      (eval-exp (rator rands)
+               (let ((proc (eval-expression rator env))
+                     (args (eval-rands rands env)))
+                 (if (procval? proc)
+                     (apply-procedure proc args)
+                     (eopl:error 'eval-expression
+                                 "Attempt to apply non-procedure ~s" proc))))
      ;; (recur-exp (procs idss bodies principalBody)
       ;;           (eval-expression principalBody
         ;;                         (extend-env-recursively procs idss bodies env)))
@@ -161,7 +170,7 @@
       )
     ))
 
-`;*********************
+;*********************
 ; Representacion de la cerradura para un procedimiento valido
 ;
 ; <cerradura>  := <(identificador)*> <expresion> <environment>
@@ -169,7 +178,7 @@
 ; Una cerradura guarda los componentes asociados a un procedimiento valido:
 ; Una lista de identificadores, una expresion y un ambiente 
 ;
-`
+
 
 ;(define find-variable
 ;(lambda(env id)
@@ -211,6 +220,20 @@
 (define true-value?
   (lambda (x)
     (not (zero? x))))
+;*******************************************************************************************
+;Procedimientos
+(define-datatype procval procval?
+  (cerradura
+   (ids (list-of symbol?))
+   (body expression?)
+   (env environment?)))
+
+;apply-procedure: evalua el cuerpo de un procedimientos en el ambiente extendido correspondiente
+(define apply-procedure
+  (lambda (proc args)
+    (cases procval proc
+      (cerradura (ids body env)
+               (eval-expression body (extend-env ids args env))))))
 ;*******************************************************************************************
 ;Ambientes
 
