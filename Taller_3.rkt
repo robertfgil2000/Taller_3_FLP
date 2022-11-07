@@ -317,4 +317,4 @@
 ;;(scan&parse "declarar (@resta=procedimiento (@x;@y) haga recursivo ( @rest )(@x,@y) = Si @y entonces sub1(evaluar @rest(@x,sub1(@y)) finEval)sino @x finSI { evaluar @rest(@x,@y)finEval} finProc)  {evaluar @resta(10,3) finEval}")
 (interpretador)
 ;Punto c) @Suma:
-;(scan&parse "declarar (@suma=procedimiento (@x;@y) haga recursivo ( @sum )(@x,@y) = Si @y entonces add1(evaluar @sum(@x,sub1(@y)) finEval)sino @x finSI { evaluar @sum(@x,@y)finEval} finProc)  {evaluar @suma(10,3) finEval}")
+(scan&parse "recursivo (@suma(@x,@y) = Si @y entonces add1(evaluar @suma(@x,sub1(@y)) finEval)sino @x finSI) {evaluar @suma(10,3) finEval}")
