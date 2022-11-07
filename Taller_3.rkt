@@ -311,8 +311,8 @@
  ;PUNTO a) RADIO CIRCULO:
  (scan&parse "declarar (@radio=2.5;@areaCirculo=procedimiento (@x) haga ((@x*@x)*3.14) finProc) {  evaluar @areaCirculo (@radio) finEval  }")     
 ;PUNTO b) Factorial de 5 y 10
-;;(scan&parse " declarar (@x=1; @a=procedimiento (@x) haga recursivo ( @fact ) (@x) = Si @x entonces (@x * evaluar @fact(sub1(@x)) finEval) sino 1 finSI  { evaluar @fact(@x) finEval} finProc)   {evaluar @a(5) finEval}")
-;;(scan&parse " declarar (@x=1; @a=procedimiento (@x) haga recursivo ( @fact ) (@x) = Si @x entonces (@x * evaluar @fact(sub1(@x)) finEval) sino 1 finSI  { evaluar @fact(@x) finEval} finProc)   {evaluar @a(10) finEval}")
+(scan&parse "recursivo (@fact(@x) = Si @x entonces (@x * evaluar @fact(sub1(@x)) finEval) sino 1 finSI)  { evaluar @fact(5) finEval}")
+(scan&parse "recursivo (@fact(@x) = Si @x entonces (@x * evaluar @fact(sub1(@x)) finEval) sino 1 finSI)  { evaluar @fact(10) finEval}")
 ;Punto d) @Resta:
 ;;(scan&parse "declarar (@resta=procedimiento (@x;@y) haga recursivo ( @rest )(@x,@y) = Si @y entonces sub1(evaluar @rest(@x,sub1(@y)) finEval)sino @x finSI { evaluar @rest(@x,@y)finEval} finProc)  {evaluar @resta(10,3) finEval}")
 (interpretador)
