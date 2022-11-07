@@ -3,7 +3,7 @@
 '((white-sp (whitespace) skip)
   (comment  ("%" (arbno (not #\newline))) skip)
   (identifier ("@" (arbno(or letter digit))) symbol)
-  (text  (letter (arbno (or letter digit "?"))) symbol)
+  (text  (letter (arbno (or letter digit "?"))) string)
   (number  (digit (arbno (or digit "." )) )number)
   (number ("-" digit (arbno (or digit "." )) )number)
   ))
@@ -15,41 +15,31 @@
                 un-programa(exp)
 - <expresion := <numero>
                 numero-lit(num)
-
              := "\"" <texto> "\""
                 texto-lit(txt)
-
              := <identificador>
                 var-exp(id)
-
              := (expresion <primitiva-binaria> expresion)
                 primapp-bin-exp (exp1 primBin exp2)
-
               := <primitiva-unaria> (expresion)
                  primapp-un-exp (primUn exp)
-
              := Si <expresion> entonces <expresion>  sino <expresion> finSI
                 condicional-exp (test-exp true-exp false-exp)
             
              := declarar (<identificador> = <expresion> (;)) { <expresion> }
                 variableLocal-exp (ids exps cuerpo)
-
              := procedimiento (<identificador>*',') haga <expresion> finProc
                 procedimiento-ex (ids cuerpo)
-
              := "evaluar" expresion (expresion ",")*  finEval
                 app-exp (id args)
-
 <primitiva-binaria> :=  + (primitiva-suma)
                     :=  ~ (primitiva-resta)
                     :=  / (primitiva-div)
                     :=  * (primitiva-multi)
                     :=  concat (primitiva-concat)
-
 <primitiva-unaria> :=  longitud (primitiva-longitud)
                    :=  add1 (primitiva-add1)
                    :=  sub1 (primitiva-sub1)
-
 |#
 (define grammar-simple-interpreter
   '(
@@ -208,7 +198,7 @@
       (primitiva-resta () (- arg1 arg2 ))
       (primitiva-multi () (* arg1 arg2 ) )
       (primitiva-div () (/ arg1 arg2 ))
-      (primitiva-concat () (append-test arg1 arg2))
+      (primitiva-concat () (string-append arg1 arg2))
       )))
         
 (define apply-primitive-un
@@ -326,4 +316,3 @@
 ;Punto d) @Resta:
 (scan&parse "declarar (@resta=procedimiento (@x;@y) haga recursivo ( @rest )(@x,@y) = Si @y entonces sub1(evaluar @rest(@x,sub1(@y)) finEval)sino @x finSI { evaluar @rest(@x,@y)finEval} finProc)  {evaluar @resta(10,3) finEval}")
 (interpretador)
-
