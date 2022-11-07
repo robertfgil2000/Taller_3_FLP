@@ -314,7 +314,9 @@
 (scan&parse "recursivo (@fact(@x) = Si @x entonces (@x * evaluar @fact(sub1(@x)) finEval) sino 1 finSI)  { evaluar @fact(5) finEval}")
 (scan&parse "recursivo (@fact(@x) = Si @x entonces (@x * evaluar @fact(sub1(@x)) finEval) sino 1 finSI)  { evaluar @fact(10) finEval}")
 ;Punto d) @Resta:
-;;(scan&parse "declarar (@resta=procedimiento (@x;@y) haga recursivo ( @rest )(@x,@y) = Si @y entonces sub1(evaluar @rest(@x,sub1(@y)) finEval)sino @x finSI { evaluar @rest(@x,@y)finEval} finProc)  {evaluar @resta(10,3) finEval}")
+(scan&parse "recursivo (@resta(@x,@y) = Si @y entonces sub1(evaluar @resta(@x,sub1(@y)) finEval)sino @x finSI) {evaluar @resta(10,3) finEval}")
 (interpretador)
+; Multiplicacion:
+(scan&parse "recursivo (@suma(@x,@y) = Si @y entonces add1(evaluar @suma(@x,sub1(@y)) finEval)sino @x finSI;@multiplicacion(@x,@y)=Si @y entonces evaluar @suma(evaluar @multiplicacion(@x,sub1(@y)) finEval, @x) finEval sino 0 finSI) {evaluar @multiplicacion(10,3) finEval}")
 ;Punto c) @Suma:
 (scan&parse "recursivo (@suma(@x,@y) = Si @y entonces add1(evaluar @suma(@x,sub1(@y)) finEval)sino @x finSI) {evaluar @suma(10,3) finEval}")
