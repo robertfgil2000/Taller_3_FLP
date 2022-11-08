@@ -320,3 +320,9 @@
 (interpretador)
 ; Multiplicacion:
 (scan&parse "recursivo (@suma(@x,@y) = Si @y entonces add1(evaluar @suma(@x,sub1(@y)) finEval)sino @x finSI;@multiplicacion(@x,@y)=Si @y entonces evaluar @suma(evaluar @multiplicacion(@x,sub1(@y)) finEval, @x) finEval sino 0 finSI) {evaluar @multiplicacion(10,3) finEval}")
+
+;; Decorador 1 e)
+(scan&parse "recursivo (@integrantes() = \"CadenaLassoRodriguezAnaconaGilPantoja\";@saludar(@func) = (\"hola\" concat evaluar @func() finEval);@decorate()=evaluar@saludar(@integrantes) finEval ) { evaluar @decorate() finEval }")
+;; Decorador 2 f)
+(scan&parse "recursivo (@integrantes() = \"CadenaLassoRodriguezAnaconaGilPantoja\";@saludar(@func) = (\"hola\" concat evaluar @func() finEval);@decorate(@str)= (evaluar@saludar(@integrantes) finEval concat @str)) { evaluar @decorate(\"adios\") finEval }")
+(interpretador)
