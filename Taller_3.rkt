@@ -173,15 +173,6 @@
       )
     ))
 
-;*********************
-; Representacion de la cerradura para un procedimiento valido
-;
-; <cerradura>  := <(identificador)*> <expresion> <environment>
-;
-; Una cerradura guarda los componentes asociados a un procedimiento valido:
-; Una lista de identificadores, una expresion y un ambiente 
-
-
 
 ; funciones auxiliares para aplicar eval-expression a cada elemento de una 
 ; lista de operandos (expresiones)
@@ -220,6 +211,11 @@
     (not (zero? x))))
 ;*******************************************************************************************
 ;Procedimientos
+;*********************
+; Representacion de la cerradura para un procedimiento valido
+; <cerradura>  := <(identificador)*> <expresion> <environment>
+; Una cerradura guarda los componentes asociados a un procedimiento valido:
+; Una lista de identificadores, una expresion y un ambiente 
 (define-datatype procval procval?
   (cerradura
    (ids (list-of symbol?))
