@@ -1,4 +1,13 @@
 #lang eopl
+
+;;Alejandro Lasso 2040393-3743
+;;Alejandro Rodriguez 2042954-3743
+;;Diana Cadena 2041260-3743
+;;Marlon Anacona 2023777-3743
+;;Robert Gil 2022985-3743
+;;Juan Pablo Pantoja 2040104-3743
+;;URL Github: https://github.com/robertfgil2000/Taller_3_FLP
+
 (define scanner-spec-simple-interpreter
 '((white-sp (whitespace) skip)
   (comment  ("%" (arbno (not #\newline))) skip)
@@ -171,13 +180,8 @@
 ;
 ; Una cerradura guarda los componentes asociados a un procedimiento valido:
 ; Una lista de identificadores, una expresion y un ambiente 
-;
 
 
-;(define find-variable
-;(lambda(env id)
- ;(apply-env env id)
-;))
 
 ; funciones auxiliares para aplicar eval-expression a cada elemento de una 
 ; lista de operandos (expresiones)
@@ -308,15 +312,15 @@
       rhs
       (list lhs rhs)))
  
- ;PUNTO a) RADIO CIRCULO:
+;Punto a) RADIO CIRCULO:
  (scan&parse "declarar (@radio=2.5;@areaCirculo=procedimiento (@x) haga ((@x*@x)*3.14) finProc) {  evaluar @areaCirculo (@radio) finEval  }")     
-;PUNTO b) Factorial de 5 y 10
-(scan&parse "recursivo (@fact(@x) = Si @x entonces (@x * evaluar @fact(sub1(@x)) finEval) sino 1 finSI)  { evaluar @fact(5) finEval}")
-(scan&parse "recursivo (@fact(@x) = Si @x entonces (@x * evaluar @fact(sub1(@x)) finEval) sino 1 finSI)  { evaluar @fact(10) finEval}")
+;Punto b) Factorial de 5 y 10
+(scan&parse "declarar (@x=5; @a=procedimiento (@x)haga recursivo (@fact(@x) = Si @x entonces (@x * evaluar @fact(sub1(@x)) finEval) sino 1 finSI) { evaluar @fact(@x) finEval} finProc) { evaluar @a(@x) finEval}")
+(scan&parse "declarar (@x=10; @a=procedimiento (@x)haga recursivo (@fact(@x) = Si @x entonces (@x * evaluar @fact(sub1(@x)) finEval) sino 1 finSI) { evaluar @fact(@x) finEval} finProc) { evaluar @a(@x) finEval}")
+;Punto c) @Suma:
+(scan&parse "recursivo (@suma(@x,@y) = Si @y entonces add1(evaluar @suma(@x,sub1(@y)) finEval)sino @x finSI) {evaluar @suma(10,3) finEval}")
 ;Punto d) @Resta:
 (scan&parse "recursivo (@resta(@x,@y) = Si @y entonces sub1(evaluar @resta(@x,sub1(@y)) finEval)sino @x finSI) {evaluar @resta(10,3) finEval}")
 (interpretador)
 ; Multiplicacion:
 (scan&parse "recursivo (@suma(@x,@y) = Si @y entonces add1(evaluar @suma(@x,sub1(@y)) finEval)sino @x finSI;@multiplicacion(@x,@y)=Si @y entonces evaluar @suma(evaluar @multiplicacion(@x,sub1(@y)) finEval, @x) finEval sino 0 finSI) {evaluar @multiplicacion(10,3) finEval}")
-;Punto c) @Suma:
-(scan&parse "recursivo (@suma(@x,@y) = Si @y entonces add1(evaluar @suma(@x,sub1(@y)) finEval)sino @x finSI) {evaluar @suma(10,3) finEval}")
